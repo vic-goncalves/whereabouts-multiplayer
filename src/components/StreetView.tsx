@@ -15,23 +15,27 @@ export function StreetView({ location, movement, interactive }: Props) {
 
   const canMove = movement === "moving";
   const locked = movement === "nmpz";
+  // A round is identified by its starting panorama, not by the `location`
+  // object: party clients get a fresh copy of it with every server update
+  // (e.g. whenever someone locks in), and that must not reset anyone's walk.
+  const { panoId: startPano, heading: startHeading } = location;
 
-  const [heading, setHeading] = useState(location.heading);
+  const [heading, setHeading] = useState(startHeading);
   const [canUndo, setCanUndo] = useState(false);
   const [checkpoint, setCheckpoint] = useState<string>();
-  const current = useRef(location.panoId);
+  const current = useRef(startPano);
   const history = useRef<string[]>([]);
   // Set right before we call setPano ourselves, so the pano_changed listener
   // can tell our jumps apart from the player walking.
   const jumpingTo = useRef<string>(undefined);
 
   useEffect(() => {
-    current.current = location.panoId;
+    current.current = startPano;
     history.current = [];
     jumpingTo.current = undefined;
     setCanUndo(false);
     setCheckpoint(undefined);
-    setHeading(location.heading);
+    setHeading(startHeading);
 
     panorama.setOptions({
       linksControl: canMove,
@@ -39,8 +43,8 @@ export function StreetView({ location, movement, interactive }: Props) {
       scrollwheel: !locked,
       disableDoubleClickZoom: !canMove,
     });
-    panorama.setPano(location.panoId);
-    panorama.setPov({ heading: location.heading, pitch: 0 });
+    panorama.setPano(startPano);
+    panorama.setPov({ heading: startHeading, pitch: 0 });
     panorama.setZoom(0);
 
     const panoListener = panorama.addListener("pano_changed", () => {
@@ -65,7 +69,7 @@ export function StreetView({ location, movement, interactive }: Props) {
       panoListener.remove();
       povListener.remove();
     };
-  }, [panorama, location, canMove, locked]);
+  }, [panorama, startPano, startHeading, canMove, locked]);
 
   const jump = (pano: string, { record }: { record: boolean }) => {
     if (pano === current.current) return;
@@ -76,8 +80,8 @@ export function StreetView({ location, movement, interactive }: Props) {
   };
 
   const returnToStart = () => {
-    jump(location.panoId, { record: true });
-    panorama.setPov({ heading: location.heading, pitch: 0 });
+    jump(startPano, { record: true });
+    panorama.setPov({ heading: startHeading, pitch: 0 });
   };
   const undo = () => {
     const previous = history.current.pop();
