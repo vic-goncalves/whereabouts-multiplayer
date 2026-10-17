@@ -43,7 +43,7 @@ export function Home({ settings, onChange, onPlay, challenge, onPlayChallenge, o
       <div className="home__inner">
         <header className="home__header">
           <h1 className="logo">
-            Where<span>abouts</span>
+            John<span>goncalves</span>
           </h1>
           <p className="tagline">You're dropped on a random street somewhere on Earth. Look around, read the clues, and pin where you think you are.</p>
         </header>

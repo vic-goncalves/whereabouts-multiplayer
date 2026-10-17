@@ -217,7 +217,7 @@ kbd {
 
 .logo {
   margin: 0;
-  font-size: clamp(48px, 9vw, 92px);
+  font-size: clamp(28px, 9vw, 92px);
   font-weight: 900;
   font-style: italic;
   line-height: 0.95;
