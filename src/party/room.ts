@@ -68,7 +68,7 @@ export function applyMessage(
     case "settings":
       requireHost(isHost);
       requirePhase(room, "lobby");
-      room.settings = validSettings(msg.settings);
+      room.settings = validSettings({ ...room.settings, ...msg.changes });
       return room;
 
     case "start": {

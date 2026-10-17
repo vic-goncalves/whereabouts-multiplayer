@@ -32,7 +32,9 @@ export type PartyState = {
 
 export type ClientMessage =
   | { type: "join"; playerId: string; name: string; create: boolean }
-  | { type: "settings"; settings: PartySettings }
+  // Only the changed fields, so two quick changes from the host can't
+  // overwrite each other with stale values.
+  | { type: "settings"; changes: Partial<PartySettings> }
   | { type: "start"; locations: Location[] }
   | { type: "guess"; round: number; position: LatLng | null }
   | { type: "endRound" }

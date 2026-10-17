@@ -30,7 +30,7 @@ export function PartyLobby({ state, me, countries, send, onLeave }: Props) {
   const { settings } = state;
 
   const change = <K extends keyof PartySettings>(key: K, value: PartySettings[K]) =>
-    send({ type: "settings", settings: { ...settings, [key]: value } });
+    send({ type: "settings", changes: { [key]: value } });
 
   // The host's browser picks the locations (it has Street View loaded) and
   // hands them to the server, which reveals them one round at a time.

@@ -97,18 +97,19 @@ describe("joining", () => {
 describe("host controls", () => {
   it("only lets the host change settings and start", () => {
     const p = party("ann", "bob");
-    const settings = { mapId: "japan", movement: "nmpz", timeLimit: 30, rounds: 3 } as const;
-    expect(errorReason(() => p.send("bob", { type: "settings", settings }))).toBe("invalid");
-    p.send("ann", { type: "settings", settings });
-    expect(p.room.settings).toEqual(settings);
+    expect(errorReason(() => p.send("bob", { type: "settings", changes: { mapId: "japan" } }))).toBe("invalid");
+    p.send("ann", { type: "settings", changes: { mapId: "japan" } });
+    p.send("ann", { type: "settings", changes: { rounds: 3 } });
+    p.send("ann", { type: "settings", changes: { timeLimit: 30 } });
+    expect(p.room.settings).toEqual({ mapId: "japan", movement: "moving", timeLimit: 30, rounds: 3 });
     expect(errorReason(() => p.send("bob", { type: "start", locations: [PARIS] }))).toBe("invalid");
   });
 
   it("rejects settings outside the allowed options", () => {
     const p = party("ann");
-    const bad = { mapId: "mars", movement: "moving", timeLimit: 60, rounds: 5 } as const;
-    expect(errorReason(() => p.send("ann", { type: "settings", settings: bad }))).toBe("invalid");
-    expect(errorReason(() => p.send("ann", { type: "settings", settings: { ...bad, mapId: "world", timeLimit: 7 } }))).toBe("invalid");
+    expect(errorReason(() => p.send("ann", { type: "settings", changes: { mapId: "mars" } }))).toBe("invalid");
+    expect(errorReason(() => p.send("ann", { type: "settings", changes: { timeLimit: 7 } }))).toBe("invalid");
+    expect(p.room.settings.mapId).toBe("world");
   });
 
   it("validates and sanitizes the host's locations", () => {
@@ -193,7 +194,7 @@ describe("rounds", () => {
 
   it("has no deadline when the time limit is off", () => {
     const p = party("ann");
-    p.send("ann", { type: "settings", settings: { mapId: "world", movement: "moving", timeLimit: 0, rounds: 5 } });
+    p.send("ann", { type: "settings", changes: { timeLimit: 0 } });
     p.start();
     expect(p.room.roundEndsAt).toBeUndefined();
     expect(nextAlarmAt(p.room, T0, 600_000)).toBe(T0 + 600_000);
