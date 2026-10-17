@@ -11,7 +11,7 @@ Fully static: no backend, no accounts. Settings and personal bests live in your 
 - Moving, No Move and NMPZ (no moving, panning or zooming)
 - Round timer (10 s to 5 min, or none); time running out submits your pin as is
 - Compass, return to start (R), undo move (Z), checkpoint (C), zoom; Space to guess / continue
-- Guess map with no labels, hover-to-expand, adjustable size and pin-open
+- Labeled guess map with hover-to-expand, adjustable size and pin-open (the panorama itself shows no road names or address)
 - Round results and end-of-game summary maps; click the flag to open the spot in Google Maps
 - Challenge links: send a friend the exact same 5 locations
 - Maps: World, Famous Places, Europe, United States, Latin America, Asia, Japan, Africa, Australia & NZ

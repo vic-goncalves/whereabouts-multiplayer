@@ -41,11 +41,11 @@ export function getStreetView(): { panorama: google.maps.StreetViewPanorama; el:
   return streetView;
 }
 
-// No road, place or country names on the guess map. JSON styles only apply
-// to maps without a mapId, which is also why markers are OverlayViews rather
-// than AdvancedMarkerElements.
-const NO_LABELS: google.maps.MapTypeStyle[] = [
-  { elementType: "labels", stylers: [{ visibility: "off" }] },
+// The guess map keeps country, city and road names (the panorama is what hides
+// them) but drops business and transit clutter. JSON styles only apply to maps
+// without a mapId, which is also why markers are OverlayViews rather than
+// AdvancedMarkerElements.
+const GUESS_MAP_STYLE: google.maps.MapTypeStyle[] = [
   { featureType: "poi", stylers: [{ visibility: "off" }] },
   { featureType: "transit", stylers: [{ visibility: "off" }] },
   { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
@@ -65,7 +65,7 @@ export function getGuessMap(): google.maps.Map {
       center: { lat: 20, lng: 0 },
       zoom: 1,
       minZoom: 1,
-      styles: NO_LABELS,
+      styles: GUESS_MAP_STYLE,
       disableDefaultUI: true,
       clickableIcons: false,
       keyboardShortcuts: false,
