@@ -2,12 +2,14 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import type { Challenge } from "../challenge";
 import type { Countries } from "../countries";
 import { distanceKm, roundScore, type LatLng } from "../geo";
-import { findPanorama, streetViewUrl } from "../google";
-import { findLocation, type Location } from "../locations";
+import { findPanorama } from "../google";
+import { findLocation } from "../locations";
+import type { Location } from "../types";
 import { getMap } from "../maps";
 import { recordBest, ROUNDS_PER_GAME, type Settings } from "../settings";
-import { CloseIcon, MapIcon, MinusIcon, PinIcon, PlusIcon } from "./icons";
-import { MapView, type CountryShade, type Pin, type Scene } from "./MapView";
+import { GuessPanel } from "./GuessPanel";
+import { CloseIcon } from "./icons";
+import { actualPin, type CountryShade, type Pin, type Scene } from "./MapView";
 import { RoundResult } from "./RoundResult";
 import { StreetView } from "./StreetView";
 import { Summary } from "./Summary";
@@ -33,8 +35,6 @@ type Props = {
   onReplay(): void;
 };
 
-const MAX_MAP_SIZE = 3;
-
 export function Game({ settings, challenge, countries, onExit, onReplay }: Props) {
   const gameMap = getMap(settings.mapId);
   const streak = settings.mode === "streak";
@@ -50,9 +50,6 @@ export function Game({ settings, challenge, countries, onExit, onReplay }: Props
   const [startedAt, setStartedAt] = useState(0);
   const [now, setNow] = useState(0);
   const [newBest, setNewBest] = useState(false);
-  const [mapSize, setMapSize] = useState(1);
-  const [mapPinned, setMapPinned] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
 
   // Locations are found one after another so each search can skip panoramas
   // already used this game. The next round's search starts as soon as a round
@@ -73,7 +70,6 @@ export function Game({ settings, challenge, countries, onExit, onReplay }: Props
   const startRound = useEffectEvent((isCancelled: () => boolean) => {
     setPhase("loading");
     setGuess(undefined);
-    setMapOpen(false);
     locationAt(index).then(
       (loc) => {
         if (isCancelled()) return;
@@ -278,42 +274,18 @@ export function Game({ settings, challenge, countries, onExit, onReplay }: Props
             )}
           </div>
 
-          <button className="map-toggle" onClick={() => setMapOpen((o) => !o)} aria-label="Toggle map">
-            {mapOpen ? <CloseIcon /> : <MapIcon />}
-          </button>
         </>
       )}
 
-      <div
-        className={cls(
-          "guess-map",
-          `guess-map--size-${mapSize}`,
-          mapPinned && "guess-map--pinned",
-          mapOpen && "guess-map--open",
-          showResults && "guess-map--full",
-          phase === "loading" && "guess-map--hidden",
-        )}
-      >
-        {phase === "playing" && (
-          <div className="guess-map__tools">
-            <button onClick={() => setMapSize((s) => Math.min(MAX_MAP_SIZE, s + 1))} disabled={mapSize === MAX_MAP_SIZE} title="Bigger map">
-              <PlusIcon size={14} />
-            </button>
-            <button onClick={() => setMapSize((s) => Math.max(0, s - 1))} disabled={mapSize === 0} title="Smaller map">
-              <MinusIcon size={14} />
-            </button>
-            <button onClick={() => setMapPinned((p) => !p)} className={cls(mapPinned && "active")} title="Keep map open">
-              <PinIcon size={14} />
-            </button>
-          </div>
-        )}
-        <MapView scene={scene} countries={countries} onClick={phase === "playing" ? placeGuess : undefined} />
-        {phase === "playing" && (
-          <button className="btn btn--guess" disabled={!guess} onClick={submit}>
-            {guessLabel}
-          </button>
-        )}
-      </div>
+      <GuessPanel
+        mode={showResults ? "full" : phase === "loading" ? "hidden" : "guessing"}
+        scene={scene}
+        countries={countries}
+        onPlace={placeGuess}
+        guessLabel={guessLabel}
+        canGuess={guess !== undefined}
+        onGuess={submit}
+      />
 
       {phase === "result" && lastRound && (
         <RoundResult
@@ -343,12 +315,3 @@ export function Game({ settings, challenge, countries, onExit, onReplay }: Props
   );
 }
 
-function actualPin(location: Location, label?: string): Pin {
-  return {
-    position: location,
-    kind: "actual",
-    label,
-    href: streetViewUrl(location.panoId, location.heading),
-    title: location.label ? `${location.label}: open in Google Maps` : "Open in Google Maps",
-  };
-}

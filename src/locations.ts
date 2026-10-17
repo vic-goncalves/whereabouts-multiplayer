@@ -1,13 +1,7 @@
 import { inBounds, weightedPick, type Countries } from "./countries";
 import type { LatLng } from "./geo";
 import type { GameMap } from "./maps";
-
-export type Location = LatLng & {
-  panoId: string;
-  heading: number;
-  country?: string;
-  label?: string;
-};
+import type { Location } from "./types";
 
 export type Panorama = LatLng & { panoId: string; copyright: string; linkHeadings: number[] };
 

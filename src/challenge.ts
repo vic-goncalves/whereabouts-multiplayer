@@ -1,5 +1,4 @@
-import type { Location } from "./locations";
-import type { Movement } from "./settings";
+import type { Location, Movement } from "./types";
 
 // A challenge is a whole game packed into the URL, so friends can play the
 // same five locations without a server.

@@ -2,7 +2,10 @@ import { useMemo } from "react";
 import type { Challenge } from "../challenge";
 import type { Countries } from "../countries";
 import { getMap, MAPS } from "../maps";
-import { loadBest, type Mode, type Movement, type Settings } from "../settings";
+import { loadBest, type Settings } from "../settings";
+import type { Mode, Movement } from "../types";
+import { PartyEntry, type PartyEntryProps } from "./party/PartyEntry";
+import { Segmented } from "./Segmented";
 import { cls, MOVEMENT_LABELS, TIME_LIMITS, timeLimitLabel } from "./ui";
 
 type Props = {
@@ -13,6 +16,8 @@ type Props = {
   onPlayChallenge(): void;
   onDismissChallenge(): void;
   countries?: Countries;
+  // Absent when this build has no party server configured.
+  party?: PartyEntryProps;
 };
 
 const MAP_ICONS: Record<string, string> = {
@@ -33,7 +38,7 @@ const MOVEMENT_HINTS: Record<Movement, string> = {
   nmpz: "No moving, panning or zooming",
 };
 
-export function Home({ settings, onChange, onPlay, challenge, onPlayChallenge, onDismissChallenge, countries }: Props) {
+export function Home({ settings, onChange, onPlay, challenge, onPlayChallenge, onDismissChallenge, countries, party }: Props) {
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => onChange({ ...settings, [key]: value });
   const ready = countries !== undefined;
 
@@ -68,8 +73,10 @@ export function Home({ settings, onChange, onPlay, challenge, onPlayChallenge, o
           </section>
         )}
 
+        {party && <PartyEntry {...party} ready={ready} />}
+
         <section className="panel">
-          <h2 className="panel__title">Choose a map</h2>
+          <h2 className="panel__title">{party ? "Play solo: choose a map" : "Choose a map"}</h2>
           <div className="map-grid">
             {MAPS.map((m) => {
               const best = loadBest({ mapId: m.id, mode: settings.mode, movement: settings.movement });
@@ -135,36 +142,6 @@ export function Home({ settings, onChange, onPlay, challenge, onPlayChallenge, o
           A fan-made geography game. Not affiliated with GeoGuessr. Street View imagery © Google.
         </footer>
       </div>
-    </div>
-  );
-}
-
-type SegmentedProps<T> = {
-  label: string;
-  value: T;
-  options: { value: T; label: string; hint?: string }[];
-  onChange(value: T): void;
-};
-
-function Segmented<T extends string | number>({ label, value, options, onChange }: SegmentedProps<T>) {
-  const hint = options.find((o) => o.value === value)?.hint;
-  return (
-    <div className="segmented">
-      <div className="segmented__label">{label}</div>
-      <div className="segmented__options" role="radiogroup" aria-label={label}>
-        {options.map((o) => (
-          <button
-            key={o.value}
-            role="radio"
-            aria-checked={o.value === value}
-            className={cls("segmented__option", o.value === value && "segmented__option--active")}
-            onClick={() => onChange(o.value)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-      {hint && <div className="segmented__hint">{hint}</div>}
     </div>
   );
 }

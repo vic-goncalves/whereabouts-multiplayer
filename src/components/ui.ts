@@ -1,4 +1,4 @@
-import type { Movement } from "../settings";
+import type { Movement } from "../types";
 
 export function cls(...names: (string | false | undefined | null)[]): string {
   return names.filter(Boolean).join(" ");

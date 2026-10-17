@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { decodeChallenge, type Challenge } from "./challenge";
 import { Game } from "./components/Game";
 import { Home } from "./components/Home";
+import { Party } from "./components/party/Party";
 import { loadCountries, type Countries } from "./countries";
 import { API_KEY, loadGoogleMaps } from "./google";
+import { partyCodeFromUrl, randomCode, tabPlayerId } from "./party/identity";
+import { PARTY_URL } from "./party/usePartyRoom";
 import { loadSettings, saveSettings, type Settings } from "./settings";
 
 declare global {
@@ -13,6 +16,13 @@ declare global {
 }
 
 type ActiveGame = { key: number; settings: Settings; challenge?: Challenge };
+type ActiveParty = { code: string; create: boolean };
+
+const playerId = tabPlayerId();
+
+function setUrlParty(code?: string) {
+  window.history.replaceState(null, "", code ? `${window.location.pathname}?party=${code}` : window.location.pathname);
+}
 
 function challengeFromUrl(): Challenge | undefined {
   const encoded = new URLSearchParams(window.location.search).get("c");
@@ -25,6 +35,11 @@ export function App() {
   const [game, setGame] = useState<ActiveGame>();
   const [countries, setCountries] = useState<Countries>();
   const [fatal, setFatal] = useState<string>();
+  const [invitedCode, setInvitedCode] = useState(partyCodeFromUrl);
+  // A reload mid-party (code in the URL, name already known) rejoins directly.
+  const [party, setParty] = useState<ActiveParty | undefined>(() =>
+    invitedCode && settings.playerName ? { code: invitedCode, create: false } : undefined,
+  );
 
   useEffect(() => {
     if (!API_KEY) return;
@@ -56,8 +71,40 @@ export function App() {
     if (activeChallenge) clearChallenge();
   };
 
+  const enterParty = (next: ActiveParty, name: string) => {
+    updateSettings({ ...settings, playerName: name });
+    setParty(next);
+    setUrlParty(next.code);
+  };
+  const createParty = useCallback(() => {
+    const code = randomCode();
+    setParty({ code, create: true });
+    setUrlParty(code);
+  }, []);
+  const leaveParty = useCallback(() => {
+    setParty(undefined);
+    setInvitedCode(undefined);
+    setUrlParty();
+  }, []);
+
   if (!API_KEY) return <Setup />;
   if (fatal) return <Fatal message={fatal} />;
+
+  if (party && countries) {
+    return (
+      <Party
+        key={party.code}
+        code={party.code}
+        create={party.create}
+        name={settings.playerName}
+        playerId={playerId}
+        countries={countries}
+        units={settings.units}
+        onCodeTaken={createParty}
+        onLeave={leaveParty}
+      />
+    );
+  }
 
   if (game && countries) {
     return (
@@ -81,6 +128,16 @@ export function App() {
       onPlayChallenge={() => start(challenge)}
       onDismissChallenge={clearChallenge}
       countries={countries}
+      party={
+        PARTY_URL
+          ? {
+              savedName: settings.playerName,
+              invitedCode,
+              onCreate: (name) => enterParty({ code: randomCode(), create: true }, name),
+              onJoin: (code, name) => enterParty({ code, create: false }, name),
+            }
+          : undefined
+      }
     />
   );
 }

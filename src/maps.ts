@@ -1,4 +1,4 @@
-import type { Bounds } from "./countries";
+import type { Bounds } from "./types";
 import { distanceKm, WORLD_MAX_DISTANCE_KM } from "./geo";
 import { LANDMARKS, type Landmark } from "./landmarks";
 

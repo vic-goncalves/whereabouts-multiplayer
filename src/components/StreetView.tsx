@@ -1,7 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { getStreetView } from "../google";
-import type { Location } from "../locations";
-import type { Movement } from "../settings";
+import type { Location, Movement } from "../types";
 import { CheckpointIcon, FlagIcon, MinusIcon, PlusIcon, UndoIcon } from "./icons";
 import { useAttached } from "./useAttached";
 

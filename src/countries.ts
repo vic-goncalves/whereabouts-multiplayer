@@ -2,8 +2,7 @@ import { feature } from "topojson-client";
 import type { GeometryCollection, Topology } from "topojson-specification";
 import type { Feature, FeatureCollection, MultiPolygon, Polygon, Position } from "geojson";
 import type { LatLng } from "./geo";
-
-export type Bounds = { south: number; west: number; north: number; east: number };
+import type { Bounds } from "./types";
 
 type Part = { rings: Position[][]; bbox: Bounds; area: number };
 

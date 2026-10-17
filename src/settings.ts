@@ -1,7 +1,5 @@
 import type { Units } from "./geo";
-
-export type Mode = "classic" | "streak";
-export type Movement = "moving" | "no-move" | "nmpz";
+import type { Mode, Movement } from "./types";
 
 export type Settings = {
   mapId: string;
@@ -9,6 +7,7 @@ export type Settings = {
   movement: Movement;
   timeLimit: number; // seconds per round, 0 = unlimited
   units: Units;
+  playerName: string; // shown to others in party games
 };
 
 export const ROUNDS_PER_GAME = 5;
@@ -19,6 +18,7 @@ export const DEFAULT_SETTINGS: Settings = {
   movement: "moving",
   timeLimit: 0,
   units: "km",
+  playerName: "",
 };
 
 const SETTINGS_KEY = "whereabouts:settings";

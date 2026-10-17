@@ -1,13 +1,15 @@
 import { useEffect, useRef } from "react";
-import type { Bounds, Countries } from "../countries";
+import type { Countries } from "../countries";
+import type { Bounds, Location } from "../types";
 import type { LatLng } from "../geo";
-import { createHtmlMarker, getGuessMap } from "../google";
+import { createHtmlMarker, getGuessMap, streetViewUrl } from "../google";
 import { useAttached } from "./useAttached";
 
 export type Pin = {
   position: LatLng;
   kind: "guess" | "actual";
   label?: string;
+  color?: string;
   href?: string;
   title?: string;
 };
@@ -127,10 +129,22 @@ export function MapView({ scene, countries, onClick }: Props) {
   return <div ref={ref} className="map-view" />;
 }
 
+// The flag for where a round actually was. Clicking it opens Google Maps.
+export function actualPin(location: Location, label?: string): Pin {
+  return {
+    position: location,
+    kind: "actual",
+    label,
+    href: streetViewUrl(location.panoId, location.heading),
+    title: location.label ? `${location.label}: open in Google Maps` : "Open in Google Maps",
+  };
+}
+
 function pinElement(pin: Pin): HTMLElement {
   const el = document.createElement(pin.href ? "a" : "div");
   el.className = `pin pin--${pin.kind}`;
   if (pin.title) el.title = pin.title;
+  if (pin.color) el.style.setProperty("--pin-color", pin.color);
   if (pin.href && el instanceof HTMLAnchorElement) {
     el.href = pin.href;
     el.target = "_blank";
